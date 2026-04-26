@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 220 14% 96%;
+    --foreground: 220 9% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 9% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 9% 12%;
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 220 9% 20%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 6% 44%;
+    --accent: 220 14% 92%;
+    --accent-foreground: 220 9% 20%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 87%;
+    --input: 220 13% 87%;
+    --ring: 211 100% 50%;
+    --radius: 0.625rem;
+
+    --window-bg: 0 0% 100% / 0.85;
+    --window-toolbar: 0 0% 97%;
+    --window-border: 0 0% 0% / 0.12;
+    --menubar-bg: 0 0% 100% / 0.72;
+    --dock-bg: 0 0% 100% / 0.45;
+    --traffic-close: 0 80% 58%;
+    --traffic-minimize: 44 95% 55%;
+    --traffic-maximize: 130 60% 48%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 211 100% 50%;
+  }
+
+  .dark {
+    --background: 220 14% 8%;
+    --foreground: 220 10% 92%;
+    --card: 220 14% 11%;
+    --card-foreground: 220 10% 92%;
+    --popover: 220 14% 11%;
+    --popover-foreground: 220 10% 92%;
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 18%;
+    --secondary-foreground: 220 10% 92%;
+    --muted: 220 14% 18%;
+    --muted-foreground: 220 6% 56%;
+    --accent: 220 14% 18%;
+    --accent-foreground: 220 10% 92%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 22%;
+    --input: 220 13% 22%;
+    --ring: 211 100% 50%;
+
+    --window-bg: 220 14% 12% / 0.92;
+    --window-toolbar: 220 14% 14%;
+    --window-border: 0 0% 100% / 0.08;
+    --menubar-bg: 220 14% 8% / 0.72;
+    --dock-bg: 220 14% 10% / 0.45;
+    --traffic-close: 0 80% 58%;
+    --traffic-minimize: 44 95% 55%;
+    --traffic-maximize: 130 60% 48%;
+
+    --sidebar-background: 220 14% 11%;
+    --sidebar-foreground: 220 10% 92%;
+    --sidebar-primary: 220 10% 92%;
+    --sidebar-primary-foreground: 220 14% 11%;
+    --sidebar-accent: 220 14% 18%;
+    --sidebar-accent-foreground: 220 10% 92%;
+    --sidebar-border: 220 13% 22%;
+    --sidebar-ring: 211 100% 50%;
+    --accent-user: #0071e3;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* macOS system font stack */
+html {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+    'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent text selection on OS chrome */
+.os-chrome {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Window glassmorphism */
+.glass {
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+}
+
+.glass-light {
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+/* Dock magnification */
+.dock-item {
+  transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Smooth window animations */
+.window-appear {
+  animation: windowOpen 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+@keyframes windowOpen {
+  0% {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.window-minimize {
+  animation: windowClose 0.2s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+@keyframes windowClose {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.88) translateY(50vh);
+  }
+}
+
+/* Custom scrollbar macOS style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Mobile: use dynamic viewport height */
+@supports (height: 100dvh) {
+  .h-screen {
+    height: 100dvh;
+  }
+}
+
+/* Prevent pull-to-refresh on mobile */
+html {
+  overscroll-behavior: none;
+}
+
+/* Safe area insets for notched devices */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .mobile-safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .mobile-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Touch-friendly tap highlights */
+@media (max-width: 767px) {
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  * {
+    scrollbar-width: none;
+  }
+}
