@@ -214,9 +214,7 @@ The `use-device.ts` hook detects device type:
 
 **Mobile:** Renders iOS-style shell in `mobile-shell.tsx`
 **Desktop:** Renders full macOS environment with windows
-
-### Advanced Architecture Diagram
-
+ 
 ```mermaid
 flowchart TB
   U[User Browser]
