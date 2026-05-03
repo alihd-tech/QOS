@@ -68,34 +68,29 @@ export function MobileShell() {
       {/* iOS Status Bar */}
       <div className="os-chrome flex items-center justify-between px-6 pt-3 pb-1 z-50 relative">
         <span
-          className="text-[15px] font-semibold"
-          style={{ color: openAppId ? "#1d1d1f" : "#fff" }}
+          className="text-[15px] font-semibold text-foreground" 
         >
           {mounted ? currentTime : "\u00A0"}
         </span>
         <div className="flex items-center gap-1.5">
           <Signal
-            className="w-4 h-4"
-            style={{ color: openAppId ? "#1d1d1f" : "#fff" }}
+            className="w-4 h-4 text-foreground" 
           />
           <Wifi
-            className="w-4 h-4"
-            style={{ color: openAppId ? "#1d1d1f" : "#fff" }}
+            className="w-4 h-4 text-foreground" 
           />
           <Battery
-            className="w-5 h-5"
-            style={{ color: openAppId ? "#1d1d1f" : "#fff" }}
+            className="w-5 h-5 text-foreground" 
           />
         </div>
       </div>
 
       {/* App View (Full Screen) */}
       {openAppId && activeAppDef && activeWindow ? (
-        <div className="flex-1 flex flex-col bg-white relative z-40">
+        <div className="flex-1 flex flex-col bg-background relative z-40">
           {/* App Header */}
           <div
-            className="flex items-center px-4 py-2 border-b border-black/6"
-            style={{ background: "rgba(246,246,246,0.98)" }}
+            className="flex items-center px-4 py-2 border-b border-black/6" 
           >
             <button
               onClick={handleCloseApp}
@@ -115,7 +110,7 @@ export function MobileShell() {
               </svg>
               Back
             </button>
-            <span className="absolute left-1/2 -translate-x-1/2 text-[16px] font-semibold text-[#1d1d1f]">
+            <span className="absolute left-1/2 -translate-x-1/2 text-[16px] font-semibold text-foreground">
               {activeAppDef.name}
             </span>
           </div>

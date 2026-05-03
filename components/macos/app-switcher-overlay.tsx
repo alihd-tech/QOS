@@ -60,7 +60,7 @@ export function AppSwitcherOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-end justify-center pb-24 bg-black/20 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-end justify-center pb-24 backdrop-blur-sm"
       onClick={() => setShowAppSwitcher(false)}
     >
       <div

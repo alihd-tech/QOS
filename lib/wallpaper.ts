@@ -1,10 +1,12 @@
 /**
- * Wallpaper configuration for the Q-OS environment. 
+ * Wallpaper configuration for the Q-OS environment.
+ * Defaults: dark.jpg (dark theme), light.jpeg (light theme).
+ * Categories: microsoft, apple, nature.
  */
 
 export const WALLPAPER_DEFAULTS = {
-  dark: "/wallpaper/apple/bigsur-dark.jpg",
-  light: "/wallpaper/apple/bigsur-light.jpg",
+  dark: "/wallpaper/dark.jpg",
+  light: "/wallpaper/light.jpeg",
 } as const
 
 export type WallpaperTheme = keyof typeof WALLPAPER_DEFAULTS
@@ -20,6 +22,8 @@ export const WALLPAPER_CATEGORIES = {
   apple: [
     { id: "bigsur-dark", path: "/wallpaper/apple/bigsur-dark.jpg", label: "Big Sur (Dark)" },
     { id: "bigsur-light", path: "/wallpaper/apple/bigsur-light.jpg", label: "Big Sur (Light)" },
+    { id: "mountain-dark", path: "/wallpaper/dark.jpg", label: "Mountain (Dark)" },
+    { id: "mountain-light", path: "/wallpaper/light.jpeg", label: "Mountain (Light)" },
   ],
 } as const
 

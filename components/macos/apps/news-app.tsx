@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { 
   Search, 
   Globe, 
@@ -13,7 +13,6 @@ import {
   ChevronRight,
   Filter,
   RefreshCw,
-  Settings,
   User,
   Heart,
   MessageCircle,
@@ -21,7 +20,15 @@ import {
   Calendar,
   Tag,
   MapPin,
-  Star
+  Star,
+  Menu,
+  X,
+  Home,
+  Library,
+  Settings as SettingsIcon,
+  Moon,
+  Sun,
+  Loader2
 } from "lucide-react"
 
 interface NewsArticle {
@@ -58,9 +65,10 @@ export function NewsApp() {
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [showSidebar, setShowSidebar] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>([])
+  const [darkMode, setDarkMode] = useState(false)
 
   const categories = [
     { id: 'all', name: 'All News', icon: Globe },
@@ -217,7 +225,6 @@ export function NewsApp() {
 
   const handleRefresh = () => {
     setIsLoading(true)
-    // Simulate API call
     setTimeout(() => {
       setIsLoading(false)
     }, 1000)
@@ -253,73 +260,125 @@ export function NewsApp() {
     return num.toString()
   }
 
-  return (
-    <div className="flex flex-col h-full bg-white">
-       
+  // Apply dark mode class to document
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [darkMode])
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        {showSidebar && (
-          <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
-            {/* Search */}
-            <div className="p-4 border-b border-gray-200">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search news..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+  return (
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      {/* Mobile Header */}
+      <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-10">
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          <Menu size={20} className="text-gray-700 dark:text-gray-300" />
+        </button>
+        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">News</h1>
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          {darkMode ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} className="text-gray-700" />}
+        </button>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Sidebar - Slideout on mobile, permanent on desktop */}
+        <div className={`
+          fixed inset-0 z-20 lg:relative lg:z-auto lg:inset-auto
+          transform transition-transform duration-300 ease-in-out
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          w-80 lg:w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800
+          flex flex-col shadow-xl lg:shadow-none
+        `}>
+          {/* Sidebar header with close button on mobile */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">News Feed</h2>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <X size={20} className="text-gray-700 dark:text-gray-300" />
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search news..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border border-transparent rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Categories */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4">
+              <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Categories</h3>
+              <div className="space-y-1">
+                {categories.map((category) => {
+                  const Icon = category.icon
+                  const isActive = activeCategory === category.id
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => {
+                        setActiveCategory(category.id)
+                        setIsSidebarOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all ${
+                        isActive
+                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="text-sm">{category.name}</span>
+                      {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500"></div>}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
-            {/* Categories */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Categories</h3>
-                <div className="space-y-1">
-                  {categories.map((category) => {
-                    const Icon = category.icon
-                    return (
-                      <button
-                        key={category.id}
-                        onClick={() => setActiveCategory(category.id)}
-                        className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                          activeCategory === category.id
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'text-gray-600 hover:bg-gray-100'
-                        }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                        <span className="text-sm">{category.name}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Sources */}
-              <div className="p-4 border-t border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Sources</h3>
-                <div className="space-y-2">
-                  {sources.map((source) => (
-                    <div key={source.id} className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        checked={source.isActive}
-                        onChange={() => {}}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-lg">{source.logo}</span>
-                      <span className="text-sm text-gray-600">{source.name}</span>
-                    </div>
-                  ))}
-                </div>
+            {/* Sources */}
+            <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+              <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Sources</h3>
+              <div className="space-y-2">
+                {sources.map((source) => (
+                  <label key={source.id} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={source.isActive}
+                      onChange={() => {}}
+                      className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-lg">{source.logo}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{source.name}</span>
+                  </label>
+                ))}
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Overlay for mobile sidebar */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-15 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
         )}
 
         {/* Main Content */}
@@ -327,19 +386,19 @@ export function NewsApp() {
           {selectedArticle ? (
             /* Article Detail View */
             <div className="flex-1 overflow-y-auto">
-              <div className="max-w-4xl mx-auto p-6">
+              <div className="max-w-4xl mx-auto px-4 py-4 md:px-6 md:py-6">
                 <button
                   onClick={() => setSelectedArticle(null)}
-                  className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 mb-6"
+                  className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 mb-4 md:mb-6 transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  <span>Back to articles</span>
+                  <span className="text-sm font-medium">Back to articles</span>
                 </button>
 
-                <article className="space-y-6">
-                  <header className="space-y-4">
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+                <article className="space-y-4 md:space-y-6">
+                  <header className="space-y-3 md:space-y-4">
+                    <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
+                      <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full text-xs font-medium">
                         {selectedArticle.category.toUpperCase()}
                       </span>
                       <span>{selectedArticle.source}</span>
@@ -349,58 +408,58 @@ export function NewsApp() {
                       <span>{selectedArticle.readTime} min read</span>
                     </div>
 
-                    <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white leading-tight">
                       {selectedArticle.title}
                     </h1>
 
-                    <p className="text-xl text-gray-600 leading-relaxed">
+                    <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
                       {selectedArticle.summary}
                     </p>
 
-                    <div className="flex items-center justify-between py-4 border-y border-gray-200">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
-                          <User className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600">{selectedArticle.author}</span>
+                    <div className="flex flex-wrap items-center justify-between gap-3 py-3 border-y border-gray-200 dark:border-gray-800">
+                      <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-1">
+                          <User className="w-3.5 h-3.5" />
+                          <span>{selectedArticle.author}</span>
                         </div>
                         {selectedArticle.location && (
-                          <div className="flex items-center space-x-2">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-600">{selectedArticle.location}</span>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span>{selectedArticle.location}</span>
                           </div>
                         )}
                       </div>
 
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={() => toggleBookmark(selectedArticle.id)}
-                          className={`p-2 rounded-full ${
+                          className={`p-2 rounded-full transition-colors ${
                             selectedArticle.isBookmarked
-                              ? 'bg-blue-100 text-blue-600'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                           }`}
                         >
                           <Bookmark className="w-4 h-4" />
                         </button>
-                        <button className="p-2 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200">
+                        <button className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                           <Share className="w-4 h-4" />
                         </button>
-                        <button className="p-2 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200">
+                        <button className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                           <ExternalLink className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                   </header>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4 md:space-y-6">
                     <img
                       src={selectedArticle.imageUrl}
                       alt={selectedArticle.title}
-                      className="w-full h-64 object-cover rounded-lg"
+                      className="w-full h-48 md:h-64 lg:h-80 object-cover rounded-xl"
                     />
 
-                    <div className="prose prose-lg max-w-none">
-                      <p className="text-gray-700 leading-relaxed">
+                    <div className="prose prose-sm md:prose-base lg:prose-lg dark:prose-invert max-w-none">
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                         {selectedArticle.content}
                       </p>
                     </div>
@@ -409,7 +468,7 @@ export function NewsApp() {
                       {selectedArticle.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="inline-flex items-center space-x-1 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
+                          className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded-full text-xs"
                         >
                           <Tag className="w-3 h-3" />
                           <span>{tag}</span>
@@ -417,20 +476,18 @@ export function NewsApp() {
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-between py-4 border-t border-gray-200">
-                      <div className="flex items-center space-x-6 text-sm text-gray-500">
-                        <div className="flex items-center space-x-2">
-                          <Eye className="w-4 h-4" />
-                          <span>{formatNumber(selectedArticle.views)} views</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Heart className="w-4 h-4" />
-                          <span>{formatNumber(selectedArticle.likes)} likes</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <MessageCircle className="w-4 h-4" />
-                          <span>{selectedArticle.comments} comments</span>
-                        </div>
+                    <div className="flex flex-wrap items-center gap-4 py-3 border-t border-gray-200 dark:border-gray-800 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        <span>{formatNumber(selectedArticle.views)} views</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Heart className="w-4 h-4" />
+                        <span>{formatNumber(selectedArticle.likes)} likes</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="w-4 h-4" />
+                        <span>{selectedArticle.comments} comments</span>
                       </div>
                     </div>
                   </div>
@@ -441,20 +498,30 @@ export function NewsApp() {
             /* Articles List View */
             <>
               {/* Toolbar */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center space-x-4">
-                  <h2 className="text-lg font-semibold text-gray-900">
+              <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-10">
+                <div className="flex items-center gap-2 md:gap-4">
+                  <button
+                    onClick={() => setIsSidebarOpen(true)}
+                    className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    <Filter size={18} className="text-gray-700 dark:text-gray-300" />
+                  </button>
+                  <h2 className="text-sm md:text-base font-semibold text-gray-900 dark:text-white">
                     {activeCategory === 'all' ? 'All News' : categories.find(c => c.id === activeCategory)?.name}
                   </h2>
-                  <span className="text-sm text-gray-500">
-                    {filteredArticles.length} articles
+                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                    {filteredArticles.length}
                   </span>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-1 md:gap-2">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                    className={`p-2 rounded-lg transition-colors ${
+                      viewMode === 'grid'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
                   >
                     <div className="w-4 h-4 grid grid-cols-2 gap-0.5">
                       <div className="bg-current rounded-sm"></div>
@@ -465,72 +532,103 @@ export function NewsApp() {
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                    className={`p-2 rounded-lg transition-colors ${
+                      viewMode === 'list'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
                   >
-                    <div className="w-4 h-4 flex flex-col space-y-1">
+                    <div className="w-4 h-4 flex flex-col gap-0.5 justify-center">
                       <div className="h-0.5 bg-current rounded"></div>
                       <div className="h-0.5 bg-current rounded"></div>
                       <div className="h-0.5 bg-current rounded"></div>
                     </div>
                   </button>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={isLoading}
+                    className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  </button>
+                  <div className="hidden lg:block">
+                    <button
+                      onClick={() => setDarkMode(!darkMode)}
+                      className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* Articles Grid/List */}
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 overflow-y-auto p-4 md:p-6">
                 {isLoading ? (
-                  <div className="flex items-center justify-center h-64">
-                    <div className="text-center">
-                      <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                      <p className="text-gray-600">Loading latest news...</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center h-64">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-3" />
+                    <p className="text-gray-600 dark:text-gray-400">Loading latest news...</p>
                   </div>
                 ) : filteredArticles.length === 0 ? (
-                  <div className="flex items-center justify-center h-64">
-                    <div className="text-center">
-                      <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No articles found</h3>
-                      <p className="text-gray-600">Try adjusting your search or category filters</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center h-64 text-center">
+                    <Globe className="w-12 h-12 text-gray-400 dark:text-gray-600 mb-3" />
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">No articles found</h3>
+                    <p className="text-gray-600 dark:text-gray-400">Try adjusting your search or category filters</p>
+                    <button
+                      onClick={() => {
+                        setSearchQuery('')
+                        setActiveCategory('all')
+                      }}
+                      className="mt-4 text-sm text-blue-600 dark:text-blue-400 font-medium"
+                    >
+                      Clear filters
+                    </button>
                   </div>
                 ) : (
-                  <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+                  <div className={
+                    viewMode === 'grid' 
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6'
+                      : 'space-y-4'
+                  }>
                     {filteredArticles.map((article) => (
                       <article
                         key={article.id}
                         onClick={() => setSelectedArticle(article)}
-                        className={`cursor-pointer group ${
+                        className={`cursor-pointer group transition-all duration-200 ${
                           viewMode === 'grid'
-                            ? 'bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow'
-                            : 'flex space-x-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow'
+                            ? 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden hover:shadow-lg hover:scale-[1.02]'
+                            : 'flex flex-col sm:flex-row gap-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 hover:shadow-md'
                         }`}
                       >
                         <img
                           src={article.imageUrl}
                           alt={article.title}
-                          className={viewMode === 'grid' ? 'w-full h-48 object-cover' : 'w-24 h-24 object-cover rounded-lg flex-shrink-0'}
+                          className={viewMode === 'grid' 
+                            ? 'w-full h-44 object-cover'
+                            : 'w-full sm:w-28 h-28 object-cover rounded-lg'
+                          }
                         />
                         
                         <div className={viewMode === 'grid' ? 'p-4' : 'flex-1 min-w-0'}>
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full text-xs font-medium">
                               {article.category.toUpperCase()}
                             </span>
-                            <span className="text-xs text-gray-500">{formatTimeAgo(article.publishedAt)}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{formatTimeAgo(article.publishedAt)}</span>
                           </div>
 
-                          <h3 className={`font-semibold text-gray-900 group-hover:text-blue-600 transition-colors ${
-                            viewMode === 'grid' ? 'text-lg mb-2 line-clamp-2' : 'text-base mb-1 line-clamp-1'
+                          <h3 className={`font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors ${
+                            viewMode === 'grid' ? 'text-base mb-2 line-clamp-2' : 'text-base mb-1 line-clamp-1'
                           }`}>
                             {article.title}
                           </h3>
 
-                          <p className={`text-gray-600 ${viewMode === 'grid' ? 'text-sm line-clamp-3 mb-3' : 'text-sm line-clamp-2 mb-2'}`}>
+                          <p className={`text-gray-600 dark:text-gray-400 ${viewMode === 'grid' ? 'text-sm line-clamp-2 mb-3' : 'text-xs sm:text-sm line-clamp-2 mb-2'}`}>
                             {article.summary}
                           </p>
 
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                               <span>{article.source}</span>
                               <span>•</span>
                               <span>{article.readTime} min</span>
@@ -541,13 +639,13 @@ export function NewsApp() {
                                 e.stopPropagation()
                                 toggleBookmark(article.id)
                               }}
-                              className={`p-1 rounded ${
+                              className={`p-1.5 rounded-full transition-colors ${
                                 bookmarkedArticles.includes(article.id)
-                                  ? 'text-blue-600'
-                                  : 'text-gray-400 hover:text-gray-600'
+                                  ? 'text-blue-600 dark:text-blue-400'
+                                  : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                               }`}
                             >
-                              <Bookmark className="w-4 h-4" />
+                              <Bookmark className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
@@ -559,6 +657,26 @@ export function NewsApp() {
             </>
           )}
         </div>
+      </div>
+
+      {/* Bottom navigation bar for mobile (optional) */}
+      <div className="lg:hidden flex items-center justify-around py-2 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <button className="flex flex-col items-center gap-0.5 text-blue-600 dark:text-blue-400">
+          <Home size={20} />
+          <span className="text-[10px]">Home</span>
+        </button>
+        <button className="flex flex-col items-center gap-0.5 text-gray-600 dark:text-gray-400">
+          <Bookmark size={20} />
+          <span className="text-[10px]">Saved</span>
+        </button>
+        <button className="flex flex-col items-center gap-0.5 text-gray-600 dark:text-gray-400">
+          <Library size={20} />
+          <span className="text-[10px]">Sources</span>
+        </button>
+        <button className="flex flex-col items-center gap-0.5 text-gray-600 dark:text-gray-400">
+          <SettingsIcon size={20} />
+          <span className="text-[10px]">Settings</span>
+        </button>
       </div>
     </div>
   )

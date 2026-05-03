@@ -156,7 +156,7 @@ export function OSProvider({ children }: { children: React.ReactNode }) {
     "notes",
     "clock",
     "calendar",
-    "mediaplayer",
+    "kubernetes",
     "solanam",
   ])
   const [currentTime, setCurrentTime] = useState(new Date())

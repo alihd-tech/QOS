@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { useState, useCallback } from "react"
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from "lucide-react"
 
 const events = [
   { day: 5, title: "Team Standup", time: "9:00 AM", color: "#0071e3" },
@@ -33,112 +33,112 @@ export function CalendarApp() {
   for (let i = 0; i < firstDay; i++) days.push(null)
   for (let i = 1; i <= daysInMonth; i++) days.push(i)
 
-  const prevMonth = () => {
+  const prevMonth = useCallback(() => {
     if (currentMonth === 0) {
       setCurrentMonth(11)
-      setCurrentYear(currentYear - 1)
+      setCurrentYear(prev => prev - 1)
     } else {
-      setCurrentMonth(currentMonth - 1)
+      setCurrentMonth(prev => prev - 1)
     }
     setSelectedDay(null)
-  }
+  }, [currentMonth])
 
-  const nextMonth = () => {
+  const nextMonth = useCallback(() => {
     if (currentMonth === 11) {
       setCurrentMonth(0)
-      setCurrentYear(currentYear + 1)
+      setCurrentYear(prev => prev + 1)
     } else {
-      setCurrentMonth(currentMonth + 1)
+      setCurrentMonth(prev => prev + 1)
     }
     setSelectedDay(null)
-  }
+  }, [currentMonth])
 
-  const dayEvents = selectedDay ? events.filter((e) => e.day === selectedDay) : []
+  const goToToday = useCallback(() => {
+    setCurrentMonth(today.getMonth())
+    setCurrentYear(today.getFullYear())
+    setSelectedDay(today.getDate())
+  }, [today])
+
+  const dayEvents = selectedDay ? events.filter(e => e.day === selectedDay) : []
   const isToday = (day: number) =>
     day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()
 
   return (
-    <div className="h-full flex" style={{ background: "#fafafa" }}>
-      {/* Calendar grid */}
-      <div className="flex-1 flex flex-col p-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[18px] font-semibold" style={{ color: "#1d1d1f" }}>
+    <div className="h-full flex flex-col lg:flex-row bg-background text-foreground overflow-hidden">
+      {/* Main Calendar Section */}
+      <div className="flex-1 flex flex-col p-4 sm:p-5 overflow-y-auto">
+        {/* Header with month navigation */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">
             {MONTHS[currentMonth]} {currentYear}
           </h2>
           <div className="flex items-center gap-1">
             <button
-              className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-black/5 transition-colors"
               onClick={prevMonth}
+              className="p-2 rounded-full hover:bg-muted transition-colors active:scale-95 touch-manipulation"
+              aria-label="Previous month"
             >
-              <ChevronLeft size={16} style={{ color: "#86868b" }} />
+              <ChevronLeft size={18} className="text-muted-foreground" />
             </button>
             <button
-              className="px-3 py-1 rounded-md text-[12px] font-medium hover:bg-black/5 transition-colors"
-              style={{ color: "#0071e3" }}
-              onClick={() => {
-                setCurrentMonth(today.getMonth())
-                setCurrentYear(today.getFullYear())
-                setSelectedDay(today.getDate())
-              }}
+              onClick={goToToday}
+              className="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors active:scale-95 touch-manipulation"
             >
               Today
             </button>
             <button
-              className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-black/5 transition-colors"
               onClick={nextMonth}
+              className="p-2 rounded-full hover:bg-muted transition-colors active:scale-95 touch-manipulation"
+              aria-label="Next month"
             >
-              <ChevronRight size={16} style={{ color: "#86868b" }} />
+              <ChevronRight size={18} className="text-muted-foreground" />
             </button>
           </div>
         </div>
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 gap-1 mb-1">
-          {DAYS.map((d) => (
-            <div key={d} className="text-center text-[11px] font-medium py-1" style={{ color: "#86868b" }}>
-              {d}
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {DAYS.map(day => (
+            <div
+              key={day}
+              className="text-center text-xs sm:text-sm font-medium text-muted-foreground py-2"
+            >
+              {day}
             </div>
           ))}
         </div>
 
-        {/* Day cells */}
-        <div className="grid grid-cols-7 gap-1 flex-1">
-          {days.map((day, i) => {
-            if (day === null) return <div key={`empty-${i}`} />
-            const hasEvents = events.some((e) => e.day === day)
-            const selected = selectedDay === day
+        {/* Calendar grid */}
+        <div className="grid grid-cols-7 gap-1 flex-1 auto-rows-fr">
+          {days.map((day, idx) => {
+            if (day === null) {
+              return <div key={`empty-${idx}`} className="aspect-square p-1" />
+            }
+            const hasEvents = events.some(e => e.day === day)
+            const isSelected = selectedDay === day
+            const isCurrentDay = isToday(day)
+
             return (
               <button
                 key={day}
-                className="flex flex-col items-center justify-start pt-1 rounded-lg transition-colors relative"
-                style={{
-                  background: selected
-                    ? "#0071e3"
-                    : isToday(day)
-                    ? "rgba(0,113,227,0.08)"
-                    : "transparent",
-                }}
                 onClick={() => setSelectedDay(day)}
+                className={`
+                  relative aspect-square p-1 rounded-xl transition-all duration-200
+                  flex flex-col items-center justify-center
+                  hover:bg-muted/60 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50
+                  ${isSelected ? "bg-primary text-primary-foreground shadow-md" : ""}
+                  ${!isSelected && isCurrentDay ? "bg-primary/10 text-primary font-semibold" : ""}
+                `}
               >
-                <span
-                  className="text-[13px] font-medium"
-                  style={{
-                    color: selected
-                      ? "#ffffff"
-                      : isToday(day)
-                      ? "#0071e3"
-                      : "#1d1d1f",
-                  }}
-                >
+                <span className={`text-sm sm:text-base ${isSelected ? "font-semibold" : "font-medium"}`}>
                   {day}
                 </span>
                 {hasEvents && (
                   <div
-                    className="w-1 h-1 rounded-full mt-0.5"
-                    style={{
-                      background: selected ? "#ffffff" : "#0071e3",
-                    }}
+                    className={`
+                      w-1.5 h-1.5 rounded-full mt-1 transition-all
+                      ${isSelected ? "bg-primary-foreground" : "bg-primary"}
+                    `}
                   />
                 )}
               </button>
@@ -147,36 +147,70 @@ export function CalendarApp() {
         </div>
       </div>
 
-      {/* Event sidebar */}
-      <div
-        className="w-[200px] shrink-0 p-4 overflow-y-auto"
-        style={{ borderLeft: "1px solid rgba(0,0,0,0.06)" }}
-      >
-        <h3 className="text-[13px] font-semibold mb-3" style={{ color: "#1d1d1f" }}>
-          {selectedDay
-            ? `${MONTHS[currentMonth]} ${selectedDay}`
-            : "Select a day"}
-        </h3>
-        {dayEvents.length > 0 ? (
-          <div className="space-y-2">
-            {dayEvents.map((ev, i) => (
-              <div
-                key={i}
-                className="rounded-lg p-2.5"
-                style={{ background: `${ev.color}12`, borderLeft: `3px solid ${ev.color}` }}
-              >
-                <p className="text-[12px] font-medium" style={{ color: "#1d1d1f" }}>
-                  {ev.title}
-                </p>
-                <p className="text-[11px]" style={{ color: "#86868b" }}>{ev.time}</p>
-              </div>
-            ))}
+      {/* Events Sidebar - responsive: below calendar on mobile, right column on desktop */}
+      <div className={`
+        lg:w-80 w-full border-t lg:border-t-0 lg:border-l border-border
+        bg-muted/5 backdrop-blur-sm
+        flex flex-col
+        ${dayEvents.length > 0 ? "h-auto" : ""}
+      `}>
+        {/* Sidebar Header */}
+        <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CalendarIcon size={18} className="text-primary" />
+            <h3 className="text-base sm:text-lg font-semibold">
+              {selectedDay
+                ? `${MONTHS[currentMonth]} ${selectedDay}`
+                : "Select a day"}
+            </h3>
           </div>
-        ) : (
-          <p className="text-[12px]" style={{ color: "#86868b" }}>
-            {selectedDay ? "No events" : "Select a day to see events"}
-          </p>
-        )}
+          {/* Placeholder for add event button - future enhancement */}
+          <button
+            className="p-1.5 rounded-full hover:bg-muted transition-colors active:scale-95"
+            aria-label="Add event (coming soon)"
+            disabled
+          >
+            <Plus size={16} className="text-muted-foreground" />
+          </button>
+        </div>
+
+        {/* Events List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {selectedDay ? (
+            dayEvents.length > 0 ? (
+              dayEvents.map((event, idx) => (
+                <div
+                  key={idx}
+                  className="group rounded-xl p-3 transition-all hover:shadow-md cursor-default"
+                  style={{ backgroundColor: `${event.color}0c`, borderLeft: `3px solid ${event.color}` }}
+                >
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    {event.title}
+                  </p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: event.color }} />
+                    {event.time}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                  <CalendarIcon size={20} className="text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">No events scheduled</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Enjoy your day!</p>
+              </div>
+            )
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                <CalendarIcon size={20} className="text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">Pick a day to see events</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

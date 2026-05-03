@@ -21,6 +21,7 @@ import {
   SafariIcon,
   CalculatorIcon,
   NotesIcon,
+  KubernetesIcon,
   TerminalIcon,
   SettingsIcon,
   AppStoreIcon,
@@ -56,6 +57,12 @@ import { NewsApp } from "./apps/news-app"
 import { QRCodeApp } from "./apps/qr-code-app"
 import { SolearnApp } from "./apps/solearn-app"
 import { SolanaMApp } from "./apps/solanam-app"
+import { K8sApp } from "./apps/k8s-app"
+import { DockerApp } from "./apps/docker-app"
+import { DsaApp } from "./apps/dsa-app"
+import { RustEducationApp } from "./apps/rust-education-app"
+import { SshClientApp } from "./apps/ssh-client-app"
+import { DatabaseClientApp } from "./apps/database-client-app"
 
 export function Desktop() {
   const { registerApp, windows, activeWindowId, apps, wallpaperUrl, environmentNotification, clearEnvironmentNotification } = useOS()
@@ -292,6 +299,22 @@ export function Desktop() {
       category: "Entertainment",
       description:
         "Play audio and video files with playlists, controls, and fullscreen support.",
+      developer: "QOS Team",
+      rating: 4,
+      size: "25 MB",
+    })
+    registerApp({
+      id: "kubernetes",
+      name: "DevOps Guide",
+      icon: <KubernetesIcon />,
+      defaultWidth: 900,
+      defaultHeight: 580,
+      minWidth: 600,
+      minHeight: 400,
+      component: () => <K8sApp />,
+      category: "Education",
+      description:
+        "Kuber",
       developer: "QOS Team",
       rating: 4,
       size: "25 MB",
