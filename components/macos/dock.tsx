@@ -167,7 +167,7 @@ export function Dock() {
                 </button>
                 {hoveredIndex === index && (
                   <div
-                    className={`absolute bg-popover text-popover-foreground text-[12px] px-2 py-0.5 rounded whitespace-nowrap border border-border shadow-md ${
+                    className={`pointer-events-none absolute bg-popover text-popover-foreground text-[12px] px-2 py-0.5 rounded whitespace-nowrap border border-border shadow-md ${
                       position === "left"
                         ? "left-full ml-2 top-1/2 -translate-y-1/2"
                         : position === "right"
