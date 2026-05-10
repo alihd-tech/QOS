@@ -1,69 +1,15 @@
 "use client"
 
 import { useOS } from "./os-context"
-import {
-  Wifi,
-  WifiOff,
-  Battery,
-  BatteryLow,
-  Search,
-  Volume2,
-  LayoutGrid,
-  Sliders,
-  Bell,
-  BellOff,
-  Layers,
-} from "lucide-react"
-import { useState, useRef, useEffect, useCallback, useMemo } from "react"
+import { Wifi, Battery, Search, Volume2, LayoutGrid, Sliders, Bell } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
 import { useWallet } from "@solana/wallet-adapter-react"
-import { useTheme } from "next-themes"
-import type { ShortcutBinding } from "@/lib/settings"
-
-const QOS_VERSION = "2.3.1"
-
-type MenuLeaf =
-  | { type: "sep" }
-  | {
-      type: "item"
-      label: string
-      shortcut?: string
-      disabled?: boolean
-      action?: () => void
-    }
-
-function formatShortcut(b: ShortcutBinding): string {
-  const parts: string[] = []
-  if (b.meta) parts.push("⌘")
-  if (b.ctrl) parts.push("⌃")
-  if (b.alt) parts.push("⌥")
-  if (b.shift) parts.push("⇧")
-  const k = b.key
-  const symbol =
-    k === " "
-      ? "Space"
-      : k === "ArrowUp"
-        ? "↑"
-        : k === "ArrowDown"
-          ? "↓"
-          : k === "ArrowLeft"
-            ? "←"
-            : k === "ArrowRight"
-              ? "→"
-              : k === "Tab"
-                ? "Tab"
-                : k.length === 1
-                  ? k.toUpperCase()
-                  : k
-  parts.push(symbol)
-  return parts.join("")
-}
 
 export function MenuBar() {
   const {
     menuBarApp,
     menuBarWindow,
     apps,
-    windows,
     settings,
     currentTime,
     lockScreen,
@@ -71,8 +17,6 @@ export function MenuBar() {
     closeWindow,
     minimizeWindow,
     maximizeWindow,
-    focusWindow,
-    restoreWindow,
     showTaskView,
     setShowTaskView,
     showSpotlight,
@@ -81,84 +25,23 @@ export function MenuBar() {
     setShowControlCenter,
     showNotificationCenter,
     setShowNotificationCenter,
-    showMissionControl,
-    setShowMissionControl,
-    setShowAppSwitcher,
   } = useOS()
-  const { resolvedTheme, setTheme } = useTheme()
   const { publicKey, connected } = useWallet()
   const activeApp = apps.find((a) => a.id === menuBarApp)
   const appName = activeApp?.name ?? "Finder"
-  const frontAppId = menuBarApp ?? "finder"
   const isNativeMaximized =
     menuBarWindow &&
     activeApp?.windowType === "native" &&
     menuBarWindow.isMaximized
   const trafficOnLeft = settings.window.trafficLightsPosition === "left"
-  const shortcuts = settings.shortcuts
-  const volume = settings.sound?.volume ?? 70
-  const dndOn = !settings.notifications.enabled
 
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [trafficHover, setTrafficHover] = useState(false)
-  const [aboutOpen, setAboutOpen] = useState(false)
-  const [forceQuitOpen, setForceQuitOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
-  const [online, setOnline] = useState(true)
-  const [batteryLevel, setBatteryLevel] = useState<number | null>(null)
-  const [batteryCharging, setBatteryCharging] = useState<boolean | null>(null)
 
   useEffect(() => {
     setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    setOnline(typeof navigator !== "undefined" ? navigator.onLine : true)
-    const onOnline = () => setOnline(true)
-    const onOffline = () => setOnline(false)
-    window.addEventListener("online", onOnline)
-    window.addEventListener("offline", onOffline)
-    return () => {
-      window.removeEventListener("online", onOnline)
-      window.removeEventListener("offline", onOffline)
-    }
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-    let batteryCleanup: (() => void) | undefined
-    const nav = navigator as Navigator & {
-      getBattery?: () => Promise<{
-        level: number
-        charging: boolean
-        addEventListener: (type: string, fn: () => void) => void
-        removeEventListener: (type: string, fn: () => void) => void
-      }>
-    }
-    if (nav.getBattery) {
-      nav.getBattery().then((bat) => {
-        if (cancelled) return
-        const sync = () => {
-          setBatteryLevel(Math.round(bat.level * 100))
-          setBatteryCharging(bat.charging)
-        }
-        sync()
-        bat.addEventListener("levelchange", sync)
-        bat.addEventListener("chargingchange", sync)
-        batteryCleanup = () => {
-          bat.removeEventListener("levelchange", sync)
-          bat.removeEventListener("chargingchange", sync)
-        }
-      })
-    } else {
-      setBatteryLevel(null)
-      setBatteryCharging(null)
-    }
-    return () => {
-      cancelled = true
-      batteryCleanup?.()
-    }
   }, [])
 
   useEffect(() => {
@@ -171,59 +54,7 @@ export function MenuBar() {
     return () => document.removeEventListener("mousedown", handleClick)
   }, [])
 
-  useEffect(() => {
-    if (!aboutOpen && !forceQuitOpen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setAboutOpen(false)
-        setForceQuitOpen(false)
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [aboutOpen, forceQuitOpen])
-
-  const closeMenus = useCallback(() => setOpenMenu(null), [])
-
-  const run = useCallback(
-    (fn?: () => void) => {
-      closeMenus()
-      fn?.()
-    },
-    [closeMenus]
-  )
-
-  const toggleFullscreen = useCallback(async () => {
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen()
-      else await document.documentElement.requestFullscreen()
-    } catch {
-      /* unsupported or denied */
-    }
-  }, [])
-
-  const bringAllToFront = useCallback(() => {
-    const sorted = [...windows].sort((a, b) => a.zIndex - b.zIndex)
-    for (const w of sorted) {
-      if (w.isMinimized) restoreWindow(w.id)
-      else focusWindow(w.id)
-    }
-  }, [windows, restoreWindow, focusWindow])
-
-  const quitFrontApp = useCallback(() => {
-    windows
-      .filter((w) => w.appId === frontAppId)
-      .forEach((w) => closeWindow(w.id))
-  }, [windows, frontAppId, closeWindow])
-
-  const execEdit = useCallback((command: string) => {
-    try {
-      document.execCommand(command)
-    } catch {
-      /* no focused editable region */
-    }
-  }, [])
-
+  // Only render time on client to prevent hydration mismatch
   const formattedTime = mounted
     ? currentTime.toLocaleTimeString("en-US", {
         hour: "numeric",
@@ -245,172 +76,24 @@ export function MenuBar() {
       ? `${publicKey.toBase58().slice(0, 4)}...${publicKey.toBase58().slice(-4)}`
       : null
 
-  const forceQuitGroups = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const w of windows) {
-      map.set(w.appId, (map.get(w.appId) ?? 0) + 1)
-    }
-    return Array.from(map.entries()).map(([appId, count]) => ({
-      appId,
-      name: apps.find((a) => a.id === appId)?.name ?? appId,
-      count,
-    }))
-  }, [windows, apps])
-
-  useEffect(() => {
-    if (forceQuitOpen && forceQuitGroups.length === 0) setForceQuitOpen(false)
-  }, [forceQuitOpen, forceQuitGroups.length])
-
-  const menus: Record<string, MenuLeaf[]> = useMemo(() => {
-    const appearance = mounted ? (resolvedTheme === "dark" ? "dark" : "light") : "light"
-    return {
-      [appName]: [
-        { type: "item", label: `About ${appName}`, action: () => setAboutOpen(true) },
-        { type: "sep" },
-        {
-          type: "item",
-          label: "Preferences…",
-          shortcut: "⌘,",
-          action: () => openApp("settings"),
-        },
-        { type: "sep" },
-        {
-          type: "item",
-          label: `Quit ${appName}`,
-          shortcut: "⌘Q",
-          disabled: windows.filter((w) => w.appId === frontAppId).length === 0,
-          action: quitFrontApp,
-        },
-      ],
-      File: [
-        {
-          type: "item",
-          label: "New Window",
-          shortcut: "⌘N",
-          action: () => openApp(frontAppId),
-        },
-        {
-          type: "item",
-          label: "New Tab",
-          disabled: frontAppId !== "safari",
-          action: () => openApp("safari"),
-        },
-        { type: "sep" },
-        {
-          type: "item",
-          label: "Close Window",
-          shortcut: "⌘W",
-          disabled: !menuBarWindow,
-          action: () => menuBarWindow && closeWindow(menuBarWindow.id),
-        },
-      ],
-      Edit: [
-        { type: "item", label: "Undo", shortcut: "⌘Z", action: () => execEdit("undo") },
-        {
-          type: "item",
-          label: "Redo",
-          shortcut: "⌘⇧Z",
-          action: () => execEdit("redo"),
-        },
-        { type: "sep" },
-        { type: "item", label: "Cut", shortcut: "⌘X", action: () => execEdit("cut") },
-        { type: "item", label: "Copy", shortcut: "⌘C", action: () => execEdit("copy") },
-        { type: "item", label: "Paste", shortcut: "⌘V", action: () => execEdit("paste") },
-        {
-          type: "item",
-          label: "Select All",
-          shortcut: "⌘A",
-          action: () => execEdit("selectAll"),
-        },
-      ],
-      View: [
-        {
-          type: "item",
-          label: appearance === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode",
-          action: () => setTheme(appearance === "dark" ? "light" : "dark"),
-        },
-        { type: "item", label: "Enter Full Screen", action: toggleFullscreen },
-        { type: "sep" },
-        {
-          type: "item",
-          label: "Mission Control",
-          shortcut: formatShortcut(shortcuts.missionControl),
-          action: () => setShowMissionControl(true),
-        },
-        {
-          type: "item",
-          label: "App Switcher",
-          shortcut: formatShortcut(shortcuts.appSwitcher),
-          action: () => setShowAppSwitcher(true),
-        },
-      ],
-      Window: [
-        {
-          type: "item",
-          label: "Minimize",
-          shortcut: "⌘M",
-          disabled: !menuBarWindow,
-          action: () => menuBarWindow && minimizeWindow(menuBarWindow.id),
-        },
-        {
-          type: "item",
-          label: "Zoom",
-          disabled: !menuBarWindow,
-          action: () => menuBarWindow && maximizeWindow(menuBarWindow.id),
-        },
-        { type: "sep" },
-        {
-          type: "item",
-          label: "Bring All to Front",
-          disabled: windows.length === 0,
-          action: bringAllToFront,
-        },
-      ],
-      Help: [
-        {
-          type: "item",
-          label: `${appName} Help`,
-          action: () => openApp("settings"),
-        },
-        { type: "sep" },
-        {
-          type: "item",
-          label: "Keyboard Shortcuts…",
-          action: () => setAboutOpen(true),
-        },
-      ],
-    }
-  }, [
-    appName,
-    frontAppId,
-    windows,
-    menuBarWindow,
-    mounted,
-    resolvedTheme,
-    shortcuts,
-    openApp,
-    closeWindow,
-    minimizeWindow,
-    maximizeWindow,
-    quitFrontApp,
-    bringAllToFront,
-    toggleFullscreen,
-    setTheme,
-    setShowMissionControl,
-    setShowAppSwitcher,
-    execEdit,
-  ])
-
-  const openMissionControl = () => {
-    setShowMissionControl(!showMissionControl)
-    setShowControlCenter(false)
-    setShowNotificationCenter(false)
+  const menus: Record<string, string[]> = {
+    [appName]: [
+      "About " + appName,
+      "---",
+      "Preferences...",
+      "---",
+      "Quit " + appName,
+    ],
+    File: ["New Window", "New Tab", "---", "Close Window"],
+    Edit: ["Undo", "Redo", "---", "Cut", "Copy", "Paste", "Select All"],
+    View: ["Show Toolbar", "Show Sidebar", "---", "Enter Full Screen"],
+    Window: ["Minimize", "Zoom", "---", "Bring All to Front"],
+    Help: [appName + " Help"],
   }
 
   return (
     <div
       ref={menuRef}
-      data-block-system-context
       className="os-chrome fixed top-0 left-0 right-0 h-7 z-[9999] flex items-center px-4 text-[13px] font-medium"
       style={{
         background: "hsl(var(--menubar-bg))",
@@ -420,25 +103,10 @@ export function MenuBar() {
         color: "hsl(var(--foreground))",
       }}
     >
-      {aboutOpen && (
-        <AboutModal onClose={() => setAboutOpen(false)} appLabel={appName} />
-      )}
-      {forceQuitOpen && (
-        <ForceQuitModal
-          groups={forceQuitGroups}
-          onClose={() => setForceQuitOpen(false)}
-          onForceQuit={(appId) => {
-            windows.filter((w) => w.appId === appId).forEach((w) => closeWindow(w.id))
-          }}
-        />
-      )}
-
+      {/* Q Logo */}
       <button
         className="flex items-center justify-center w-8 h-7 hover:bg-black/5 dark:hover:bg-white/5 rounded"
         onClick={() => setOpenMenu(openMenu === "apple" ? null : "apple")}
-        aria-label="Apple menu"
-        aria-expanded={openMenu === "apple"}
-        aria-haspopup="menu"
       >
         <span
           className="text-[16px] font-bold leading-none"
@@ -450,57 +118,24 @@ export function MenuBar() {
 
       {openMenu === "apple" && (
         <div
-          className="absolute top-7 left-2 glass rounded-lg shadow-xl py-1 min-w-[240px] border bg-popover border-border"
+          className="absolute top-7 left-2 glass rounded-lg shadow-xl py-1 min-w-[200px] border bg-popover border-border"
           style={{ color: "hsl(var(--foreground))" }}
-          role="menu"
         >
-          <MenuRow
-            label="About This Q-OS"
-            onClick={() => run(() => setAboutOpen(true))}
-          />
+          <MenuItem label="About This QOS" />
           <MenuSeparator />
-          <MenuRow label="System Preferences…" onClick={() => run(() => openApp("settings"))} />
-          <MenuRow label="Q-OS App Store…" onClick={() => run(() => openApp("appstore"))} />
+          <MenuItem label="System Preferences..." onClick={() => openApp("settings")} />
+          <MenuItem label="QOS App Store..." onClick={() => openApp("appstore")} />
           <MenuSeparator />
-          <MenuRow
-            label="Force Quit…"
-            disabled={windows.length === 0}
-            onClick={() => run(() => setForceQuitOpen(true))}
-          />
+          <MenuItem label="Force Quit..." />
           <MenuSeparator />
-          <MenuRow label="Lock Screen" onClick={() => run(() => lockScreen())} />
-          <MenuRow label="Sleep" onClick={() => run(() => lockScreen())} />
-          <MenuRow
-            label="Restart Q-OS…"
-            onClick={() =>
-              run(() => {
-                if (typeof window !== "undefined" && window.confirm("Restart Q-OS? Unsaved work in apps may be lost.")) {
-                  window.location.reload()
-                }
-              })
-            }
-          />
-          <MenuRow
-            label="Shut Down Q-OS…"
-            onClick={() =>
-              run(() => {
-                if (
-                  typeof window !== "undefined" &&
-                  window.confirm(
-                    "End this Q-OS session? You can open the page again to start fresh."
-                  )
-                ) {
-                  window.close()
-                  setTimeout(() => {
-                    alert("Close this browser tab to finish shutting down.")
-                  }, 100)
-                }
-              })
-            }
-          />
+          <MenuItem label="Lock Screen" onClick={() => lockScreen()} />
+          <MenuItem label="Sleep" />
+          <MenuItem label="Restart..." />
+          <MenuItem label="Shut Down..." />
         </div>
       )}
 
+      {/* Native app maximized: traffic lights + window title in menubar (left or right per setting) */}
       {isNativeMaximized && menuBarWindow && trafficOnLeft && (
         <div className="flex items-center gap-2 ml-2">
           <MenubarTrafficLights
@@ -518,6 +153,7 @@ export function MenuBar() {
         </div>
       )}
 
+      {/* App menus */}
       <div className="flex items-center gap-0 ml-1">
         {Object.entries(menus).map(([label, items], i) => (
           <div key={label} className="relative">
@@ -525,29 +161,26 @@ export function MenuBar() {
               className={`px-2 h-7 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${
                 i === 0 ? "font-semibold" : ""
               } ${openMenu === label ? "bg-black/8 dark:bg-white/8" : ""}`}
-              onClick={() => setOpenMenu(openMenu === label ? null : label)}
+              onClick={() =>
+                setOpenMenu(openMenu === label ? null : label)
+              }
               onMouseEnter={() => openMenu && setOpenMenu(label)}
-              aria-expanded={openMenu === label}
-              aria-haspopup="menu"
             >
               {label}
             </button>
             {openMenu === label && (
               <div
-                className="absolute top-7 left-0 glass rounded-lg shadow-xl py-1 min-w-[220px] border bg-popover border-border"
+                className="absolute top-7 left-0 glass rounded-lg shadow-xl py-1 min-w-[200px] border bg-popover border-border"
                 style={{ color: "hsl(var(--foreground))" }}
-                role="menu"
               >
-                {items.map((entry, idx) =>
-                  entry.type === "sep" ? (
-                    <MenuSeparator key={`sep-${label}-${idx}`} />
+                {items.map((item, idx) =>
+                  item === "---" ? (
+                    <MenuSeparator key={`sep-${idx}`} />
                   ) : (
-                    <MenuRow
-                      key={`${entry.label}-${idx}`}
-                      label={entry.label}
-                      shortcut={entry.shortcut}
-                      disabled={entry.disabled}
-                      onClick={() => run(entry.action)}
+                    <MenuItem
+                      key={item}
+                      label={item}
+                      onClick={() => setOpenMenu(null)}
                     />
                   )
                 )}
@@ -557,7 +190,9 @@ export function MenuBar() {
         ))}
       </div>
 
-      <div className="ml-auto flex items-center gap-0.5">
+      {/* Right side */}
+      <div className="ml-auto flex items-center gap-1">
+        {/* Native app maximized header when traffic lights on right */}
         {isNativeMaximized && menuBarWindow && !trafficOnLeft && (
           <>
             <span className="text-[12px] font-medium truncate max-w-[200px] mr-2" title={menuBarWindow.title}>
@@ -575,36 +210,7 @@ export function MenuBar() {
             <div className="w-px h-4 bg-black/10 dark:bg-white/10 mx-1" />
           </>
         )}
-
-        <div
-          className="hidden sm:flex items-center gap-0.5 px-1 rounded-md bg-black/[0.04] dark:bg-white/[0.06]"
-          title={
-            batteryLevel === null
-              ? online
-                ? "Network connected"
-                : "Offline"
-              : `${online ? "Online" : "Offline"} · Battery ${batteryLevel}%${batteryCharging ? " (charging)" : ""}`
-          }
-        >
-          {online ? (
-            <Wifi className="w-3.5 h-3.5 opacity-70" aria-hidden />
-          ) : (
-            <WifiOff className="w-3.5 h-3.5 opacity-70 text-amber-600" aria-hidden />
-          )}
-          {batteryLevel !== null &&
-            (batteryLevel <= 20 ? (
-              <BatteryLow className="w-3.5 h-3.5 opacity-70 ml-0.5" aria-hidden />
-            ) : (
-              <Battery className="w-3.5 h-3.5 opacity-70 ml-0.5" aria-hidden />
-            ))}
-          <span
-            className="flex items-center justify-center w-7 h-7 rounded"
-            title={`Output volume: ${volume}%`}
-          >
-            <Volume2 className="w-3.5 h-3.5 opacity-70" aria-hidden />
-          </span>
-        </div>
-
+        {/* Task View */}
         <button
           type="button"
           onClick={() => setShowTaskView(!showTaskView)}
@@ -614,44 +220,30 @@ export function MenuBar() {
           title="Task View"
           aria-label="Task View"
         >
-          <Layers className="w-4 h-4" />
-        </button>
-
-        <button
-          type="button"
-          onClick={openMissionControl}
-          className={`flex items-center justify-center w-8 h-7 rounded transition-colors ${
-            showMissionControl ? "bg-primary/20 text-primary" : "hover:bg-black/5 dark:hover:bg-white/5"
-          }`}
-          title={`Mission Control (${formatShortcut(shortcuts.missionControl)})`}
-          aria-label="Mission Control"
-        >
           <LayoutGrid className="w-4 h-4" />
         </button>
-
+        {/* Spotlight */}
         <button
           type="button"
           onClick={() => {
             setShowSpotlight(!showSpotlight)
             setShowControlCenter(false)
             setShowNotificationCenter(false)
-            setShowMissionControl(false)
           }}
           className={`flex items-center justify-center w-8 h-7 rounded transition-colors ${
             showSpotlight ? "bg-primary/20 text-primary" : "hover:bg-black/5 dark:hover:bg-white/5"
           }`}
-          title={`Spotlight Search (${formatShortcut(shortcuts.spotlight)})`}
+          title="Spotlight Search (⌘Space)"
           aria-label="Spotlight Search"
         >
           <Search className="w-4 h-4" />
         </button>
-
+        {/* Control Center */}
         <button
           type="button"
           onClick={() => {
             setShowControlCenter(!showControlCenter)
             setShowNotificationCenter(false)
-            setShowMissionControl(false)
           }}
           className={`flex items-center justify-center w-8 h-7 rounded transition-colors ${
             showControlCenter ? "bg-primary/20 text-primary" : "hover:bg-black/5 dark:hover:bg-white/5"
@@ -661,13 +253,12 @@ export function MenuBar() {
         >
           <Sliders className="w-4 h-4" />
         </button>
-
+        {/* Notification Center */}
         <button
           type="button"
           onClick={() => {
             setShowNotificationCenter(!showNotificationCenter)
             setShowControlCenter(false)
-            setShowMissionControl(false)
           }}
           className={`flex items-center justify-center w-8 h-7 rounded transition-colors ${
             showNotificationCenter ? "bg-primary/20 text-primary" : "hover:bg-black/5 dark:hover:bg-white/5"
@@ -675,28 +266,30 @@ export function MenuBar() {
           title="Notification Center"
           aria-label="Notification Center"
         >
-          {dndOn ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+          <Bell className="w-4 h-4" />
         </button>
-
+        {/* Wallet address chip */}
         {truncatedAddress && (
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5 mx-0.5">
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5 mx-1">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[11px] font-mono opacity-70">{truncatedAddress}</span>
+            <span className="text-[11px] font-mono opacity-70">
+              {truncatedAddress}
+            </span>
           </div>
-        )}
-
+        )} 
         <button
           type="button"
           onClick={() => {
-            run(() => openApp("clock"))
+            setShowNotificationCenter(!showNotificationCenter)
             setShowControlCenter(false)
-            setShowMissionControl(false)
           }}
-          className="flex items-center gap-1.5 px-2 h-7 rounded transition-colors hover:bg-black/5 dark:hover:bg-white/5"
-          title="Open Clock"
+          className={`flex items-center gap-1.5 px-2 h-7 rounded transition-colors ${
+            showNotificationCenter ? "bg-primary/20 text-primary" : "hover:bg-black/5 dark:hover:bg-white/5"
+          }`}
+          title="Date & Time — Notification Center"
         >
-          <span className="text-[13px] opacity-90 tabular-nums">
-            {mounted ? `${formattedDate}  ${formattedTime}` : "\u00A0"}
+          <span className="text-[13px] opacity-90">
+            {mounted ? `${formattedDate} ${formattedTime}` : "\u00A0"}
           </span>
         </button>
       </div>
@@ -704,158 +297,26 @@ export function MenuBar() {
   )
 }
 
-function MenuRow({
+function MenuItem({
   label,
-  shortcut,
-  disabled,
   onClick,
 }: {
   label: string
-  shortcut?: string
-  disabled?: boolean
   onClick?: () => void
 }) {
   return (
     <button
-      type="button"
-      disabled={disabled}
-      className="w-full text-left px-3 py-1 text-[13px] rounded-[4px] mx-1 transition-colors flex items-center justify-between gap-4 disabled:opacity-40 disabled:pointer-events-none hover:bg-primary hover:text-primary-foreground"
+      className="w-full text-left px-3 py-1 text-[13px] hover:bg-primary hover:text-primary-foreground rounded-[4px] mx-1 transition-colors"
       style={{ width: "calc(100% - 8px)" }}
       onClick={onClick}
-      role="menuitem"
     >
-      <span className="truncate">{label}</span>
-      {shortcut ? (
-        <span className="text-[11px] opacity-60 tabular-nums shrink-0 font-normal">{shortcut}</span>
-      ) : null}
+      {label}
     </button>
   )
 }
 
 function MenuSeparator() {
-  return <div className="h-px bg-border my-1 mx-2" role="separator" />
-}
-
-function AboutModal({ onClose, appLabel }: { onClose: () => void; appLabel: string }) {
-  const { settings } = useOS()
-  const sc = settings.shortcuts
-  return (
-    <div
-      className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-      onClick={onClose}
-      role="presentation"
-    >
-      <div
-        className="bg-popover text-popover-foreground border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-labelledby="about-qos-title"
-      >
-        <div className="text-center space-y-1">
-          <div className="text-4xl font-bold tracking-tight">Q</div>
-          <h2 id="about-qos-title" className="text-lg font-semibold">
-            Q-OS
-          </h2>
-          <p className="text-sm text-muted-foreground">Version {QOS_VERSION}</p>
-          <p className="text-xs text-muted-foreground pt-2">
-            A browser-based desktop experience. Active app: <strong>{appLabel}</strong>
-          </p>
-        </div>
-        <div className="border-t border-border pt-3 space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Keyboard shortcuts
-          </p>
-          <ul className="text-xs space-y-1.5 text-foreground/90">
-            <li className="flex justify-between gap-2">
-              <span>App Switcher</span>
-              <kbd className="font-mono opacity-70">{formatShortcut(sc.appSwitcher)}</kbd>
-            </li>
-            <li className="flex justify-between gap-2">
-              <span>Mission Control</span>
-              <kbd className="font-mono opacity-70">{formatShortcut(sc.missionControl)}</kbd>
-            </li>
-            <li className="flex justify-between gap-2">
-              <span>Spotlight</span>
-              <kbd className="font-mono opacity-70">{formatShortcut(sc.spotlight)}</kbd>
-            </li>
-            <li className="flex justify-between gap-2">
-              <span>Lock Screen</span>
-              <kbd className="font-mono opacity-70">{formatShortcut(sc.lockScreen)}</kbd>
-            </li>
-          </ul>
-        </div>
-        <button
-          type="button"
-          className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90"
-          onClick={onClose}
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function ForceQuitModal({
-  groups,
-  onClose,
-  onForceQuit,
-}: {
-  groups: { appId: string; name: string; count: number }[]
-  onClose: () => void
-  onForceQuit: (appId: string) => void
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-popover text-popover-foreground border border-border rounded-2xl shadow-2xl max-w-sm w-full p-4 space-y-3"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-labelledby="force-quit-title"
-      >
-        <h2 id="force-quit-title" className="text-base font-semibold">
-          Force Quit Applications
-        </h2>
-        <p className="text-xs text-muted-foreground">
-          This immediately closes all windows for an app. Unsaved changes may be lost.
-        </p>
-        <ul className="max-h-48 overflow-y-auto space-y-1">
-          {groups.length === 0 ? (
-            <li className="text-sm text-muted-foreground py-2">No open apps.</li>
-          ) : (
-            groups.map((g) => (
-              <li
-                key={g.appId}
-                className="flex items-center justify-between gap-2 py-1.5 px-2 rounded-lg bg-muted/50"
-              >
-                <span className="text-sm truncate">
-                  {g.name}
-                  <span className="text-muted-foreground text-xs ml-1">({g.count})</span>
-                </span>
-                <button
-                  type="button"
-                  className="text-xs font-medium px-2 py-1 rounded-md bg-destructive/15 text-destructive hover:bg-destructive/25 shrink-0"
-                  onClick={() => onForceQuit(g.appId)}
-                >
-                  Force Quit
-                </button>
-              </li>
-            ))
-          )}
-        </ul>
-        <button
-          type="button"
-          className="w-full py-2 rounded-lg border border-border text-sm hover:bg-muted/50"
-          onClick={onClose}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  )
+  return <div className="h-px bg-border my-1 mx-2" />
 }
 
 function MenubarTrafficLights({

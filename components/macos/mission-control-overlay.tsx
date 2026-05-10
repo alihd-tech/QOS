@@ -23,7 +23,6 @@ export function MissionControlOverlay() {
 
   return (
     <div
-      data-block-system-context
       className="fixed inset-0 z-[9999] flex flex-col bg-black/30 backdrop-blur-sm p-8"
       onClick={() => setShowMissionControl(false)}
     >

@@ -6,7 +6,6 @@ import { useOS } from "./os-context"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { resolveWallpaperUrl } from "@/lib/wallpaper"
 import { Wifi, Battery, Signal } from "lucide-react"
-import { useSystemContextMenu } from "./system-context-menu"
 
 export function MobileShell() {
   const { apps, installedAppIds, openApp, windows, closeWindow, wallpaperUrl } = useOS()
@@ -17,7 +16,6 @@ export function MobileShell() {
   const [currentTime, setCurrentTime] = useState("")
   const [mounted, setMounted] = useState(false)
   const [openAppId, setOpenAppId] = useState<string | null>(null)
-  const systemContext = useSystemContextMenu()
 
   useEffect(() => {
     setMounted(true)
@@ -60,19 +58,15 @@ export function MobileShell() {
 
   return (
     <div
-      className="h-[100dvh] w-screen flex flex-col relative overflow-hidden touch-manipulation"
+      className="h-[100dvh] w-screen flex flex-col relative overflow-hidden"
       style={{
         backgroundImage: `url(${wallpaper})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
-      {...systemContext.surfaceProps}
     >
       {/* iOS Status Bar */}
-      <div
-        data-block-system-context
-        className="os-chrome flex items-center justify-between px-6 pt-3 pb-1 z-50 relative"
-      >
+      <div className="os-chrome flex items-center justify-between px-6 pt-3 pb-1 z-50 relative">
         <span
           className="text-[15px] font-semibold text-foreground" 
         >
@@ -93,10 +87,7 @@ export function MobileShell() {
 
       {/* App View (Full Screen) */}
       {openAppId && activeAppDef && activeWindow ? (
-        <div
-          data-block-system-context
-          className="flex-1 flex flex-col bg-background relative z-40"
-        >
+        <div className="flex-1 flex flex-col bg-background relative z-40">
           {/* App Header */}
           <div
             className="flex items-center px-4 py-2 border-b border-black/6" 
@@ -138,7 +129,6 @@ export function MobileShell() {
             {truncatedAddress && (
               <div className="flex justify-center mt-3 mb-1">
                 <div
-                  data-block-system-context
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full"
                   style={{
                     background: "rgba(255,255,255,0.2)",
@@ -159,8 +149,6 @@ export function MobileShell() {
               {installedApps.map((app) => (
                 <button
                   key={app.id}
-                  type="button"
-                  data-block-system-context
                   className="flex flex-col items-center gap-1.5 active:scale-90 transition-transform"
                   onClick={() => handleOpenApp(app.id)}
                 >
@@ -176,7 +164,7 @@ export function MobileShell() {
           </div>
 
           {/* iOS Dock */}
-          <div data-block-system-context className="os-chrome pb-4 pt-2 px-6 z-20 relative">
+          <div className="os-chrome pb-4 pt-2 px-6 z-20 relative">
             <div
               className="flex items-center justify-around gap-2 px-4 py-3 rounded-[22px]"
               style={{
@@ -190,8 +178,6 @@ export function MobileShell() {
               {installedApps.slice(0, 4).map((app) => (
                 <button
                   key={app.id}
-                  type="button"
-                  data-block-system-context
                   className="w-[50px] h-[50px] rounded-[12px] overflow-hidden active:scale-90 transition-transform shadow-md"
                   onClick={() => handleOpenApp(app.id)}
                 >
@@ -207,7 +193,6 @@ export function MobileShell() {
           </div>
         </>
       )}
-      {systemContext.menu}
     </div>
   )
 }

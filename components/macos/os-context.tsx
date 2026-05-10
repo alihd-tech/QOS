@@ -152,8 +152,12 @@ export function OSProvider({ children }: { children: React.ReactNode }) {
     "settings",
     "appstore",
     "calculator",
-    "terminal", 
-    "clock"
+    "terminal",
+    "notes",
+    "clock",
+    "calendar",
+    "kubernetes",
+    "solanam",
   ])
   const [currentTime, setCurrentTime] = useState(new Date())
   const [wallpaperUrl, setWallpaperUrlState] = useState<string | null>(null)

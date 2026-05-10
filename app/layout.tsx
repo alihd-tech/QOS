@@ -8,7 +8,9 @@ import { ThemeProvider } from "@/components/theme-provider"
 const _inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = { 
-  title:'QOS - Quantum Operating System',
+  title: {
+    default: 'Q Operating System'
+  },
   description: 'QOS - A web-based desktop operating system',
   applicationName: 'QOS',
   referrer: 'origin-when-cross-origin',
@@ -35,7 +37,7 @@ export const metadata: Metadata = {
       {
         rel: 'mask-icon',
         url: '/safari-pinned-dark.svg',
-        color: '#0071e3',
+        color: '#007AFF',
       },
     ],
   },
@@ -58,10 +60,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f5f5f7' },
-    { media: '(prefers-color-scheme: dark)', color: '#1d1d1f' },
-  ],
+  themeColor: '#f5f5f7',
   userScalable: false,
   width: 'device-width',
   initialScale: 1,

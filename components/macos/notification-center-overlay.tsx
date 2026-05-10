@@ -40,7 +40,6 @@ export function NotificationCenterOverlay() {
 
   return (
     <div
-      data-block-system-context
       className="fixed inset-0 z-[9997] flex justify-end pt-12 pb-4 pr-4"
       onClick={() => setShowNotificationCenter(false)}
     >

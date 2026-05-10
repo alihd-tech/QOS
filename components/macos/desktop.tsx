@@ -37,11 +37,6 @@ import {
   QRCodeIcon,
   SolearnIcon,
   SolanaMIcon,
-  DockerIcon,
-  DatabaseClientIcon,
-  DsaIcon,
-  RustEducationIcon,
-  SshClientIcon, 
 } from "./app-icons"
 import { FinderApp } from "./apps/finder-app"
 import { CalculatorApp } from "./apps/calculator-app"
@@ -68,13 +63,11 @@ import { DsaApp } from "./apps/dsa-app"
 import { RustEducationApp } from "./apps/rust-education-app"
 import { SshClientApp } from "./apps/ssh-client-app"
 import { DatabaseClientApp } from "./apps/database-client-app"
-import { useSystemContextMenu } from "./system-context-menu"
 
 export function Desktop() {
   const { registerApp, windows, activeWindowId, apps, wallpaperUrl, environmentNotification, clearEnvironmentNotification } = useOS()
   const { isMobile, mounted } = useDevice()
   const { resolvedTheme } = useTheme()
-  const systemContext = useSystemContextMenu()
   const theme = (resolvedTheme ?? "light") as "light" | "dark"
   const wallpaper = resolveWallpaperUrl(wallpaperUrl, theme)
 
@@ -321,90 +314,10 @@ export function Desktop() {
       component: () => <K8sApp />,
       category: "Education",
       description:
-        "Kubernetes and container workflows with guided lessons and references.",
+        "Kuber",
       developer: "QOS Team",
       rating: 4,
       size: "25 MB",
-    })
-    registerApp({
-      id: "docker",
-      name: "Docker",
-      icon: <DockerIcon />,
-      defaultWidth: 920,
-      defaultHeight: 600,
-      minWidth: 640,
-      minHeight: 420,
-      component: () => <DockerApp />,
-      category: "Developer Tools",
-      description:
-        "Simulated Docker Desktop with containers, images, a Dockerfile editor, and CLI practice.",
-      developer: "QOS Team",
-      rating: 5,
-      size: "32 MB",
-    })
-    registerApp({
-      id: "databaseclient",
-      name: "Database Client",
-      icon: <DatabaseClientIcon />,
-      defaultWidth: 900,
-      defaultHeight: 580,
-      minWidth: 600,
-      minHeight: 400,
-      component: () => <DatabaseClientApp />,
-      category: "Developer Tools",
-      description:
-        "Browse tables, run queries, and edit mock data in a lightweight SQL-style client.",
-      developer: "QOS Team",
-      rating: 4,
-      size: "14 MB",
-    })
-    registerApp({
-      id: "sshclient",
-      name: "SSH Client",
-      icon: <SshClientIcon />,
-      defaultWidth: 880,
-      defaultHeight: 560,
-      minWidth: 560,
-      minHeight: 380,
-      component: () => <SshClientApp />,
-      category: "Developer Tools",
-      description:
-        "Connect to simulated hosts, manage profiles, and explore a mock remote filesystem.",
-      developer: "QOS Team",
-      rating: 4,
-      size: "9 MB",
-    })
-    registerApp({
-      id: "dsa",
-      name: "Design Patterns & Algorithms",
-      icon: <DsaIcon />,
-      defaultWidth: 960,
-      defaultHeight: 640,
-      minWidth: 640,
-      minHeight: 420,
-      component: () => <DsaApp />,
-      category: "Education",
-      description:
-        "Data structures and algorithms with visual explanations, complexity notes, and runnable examples.",
-      developer: "QOS Team",
-      rating: 5,
-      size: "18 MB",
-    })
-    registerApp({
-      id: "rusteducation",
-      name: "Rust Learning Hub",
-      icon: <RustEducationIcon />,
-      defaultWidth: 920,
-      defaultHeight: 620,
-      minWidth: 600,
-      minHeight: 400,
-      component: () => <RustEducationApp />,
-      category: "Education",
-      description:
-        "Interactive Rust lessons from basics through ownership, error handling, and common patterns.",
-      developer: "QOS Team",
-      rating: 5,
-      size: "20 MB",
     })
     registerApp({
       id: "news",
@@ -462,7 +375,7 @@ export function Desktop() {
       defaultHeight: 700,
       minWidth: 700,
       minHeight: 500,
-      component: SolanaMApp,
+      component: () => <SolanaMApp />,
       category: "Creative",
       description:
         "Graphics and design platform for Solana ecosystem.",
@@ -501,7 +414,6 @@ export function Desktop() {
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
-      {...systemContext.surfaceProps}
     >
       <LockScreenOverlay />
       <AppSwitcherOverlay />
@@ -514,7 +426,6 @@ export function Desktop() {
       {environmentNotification && (
         <div
           role="alert"
-          data-block-system-context
           className="fixed top-10 right-6 z-[10000] max-w-sm rounded-xl border border-border bg-popover/95 backdrop-blur shadow-lg px-4 py-3 text-[13px] text-foreground animate-in fade-in slide-in-from-right-4 duration-200"
           style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.12)" }}
         >
@@ -539,7 +450,6 @@ export function Desktop() {
         )
       })}
       <Dock />
-      {systemContext.menu}
     </div>
   )
 }

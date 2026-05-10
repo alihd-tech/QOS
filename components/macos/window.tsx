@@ -201,7 +201,6 @@ export function Window({ window: win, children, isActive, appDef }: WindowProps)
       onMouseDown={() => focusWindow(win.id)}
       data-window-id={win.id}
       data-maximized={isMaximized}
-      data-block-system-context
     >
       {/* Window frame - theme-aware via CSS variables */}
       <div

@@ -33,7 +33,6 @@ export function TaskViewOverlay() {
 
   return (
     <div
-      data-block-system-context
       className="fixed inset-0 z-[9999] flex items-start justify-center pt-10 pb-8 px-6 bg-black/40 backdrop-blur-sm"
       onClick={() => setShowTaskView(false)}
     >

@@ -106,7 +106,6 @@ export function Dock() {
       {/* Invisible edge strip to trigger dock show when auto-hide */}
       {shouldHide && (
         <div
-          data-block-system-context
           className={`fixed ${alwaysOnTop ? "z-[9997]" : "z-[50]"}`}
           style={
             position === "bottom"
@@ -119,7 +118,6 @@ export function Dock() {
         />
       )}
       <div
-        data-block-system-context
         className={`os-chrome fixed ${alwaysOnTop ? "z-[9998]" : "z-[50]"} flex rounded-2xl transition-all duration-300 ${positionClasses} ${
           isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
@@ -169,7 +167,7 @@ export function Dock() {
                 </button>
                 {hoveredIndex === index && (
                   <div
-                    className={`absolute bg-popover text-popover-foreground text-[12px] px-2 py-0.5 rounded whitespace-nowrap border border-border shadow-md ${
+                    className={`pointer-events-none absolute bg-popover text-popover-foreground text-[12px] px-2 py-0.5 rounded whitespace-nowrap border border-border shadow-md ${
                       position === "left"
                         ? "left-full ml-2 top-1/2 -translate-y-1/2"
                         : position === "right"
