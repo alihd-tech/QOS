@@ -3,14 +3,14 @@
   "short_name": "QOS",
   "description": "A high-fidelity macOS-inspired web operating system featuring window management, a functional dock, and an integrated Gemini AI assistant named Q-Chat.",
   "start_url": "/",
-  "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#007AFF",
+  "display": "fullscreen",
+  "background_color": "#f5f5f7",
+  "theme_color": "#0071e3",
   "orientation": "any",
   "scope": "/",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "utilities", "PWA"],
   "icons": [
     {
       "src": "/shortcut/ms-icon-70x70.png",

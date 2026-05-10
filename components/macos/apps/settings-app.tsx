@@ -59,8 +59,8 @@ const categories = [
 
 const OS_ABOUT = {
   name: "Q-OS",
-  version: "1.0",
-  build: "24A001",
+  version: "1.3",
+  build: "24A013",
   codename: "Quantum",
   description: "A modern Web2/Web3 desktop environment in the browser.",
 }
@@ -278,7 +278,7 @@ export function SettingsApp() {
                       />
                     </div>
                   </div>
-                  {(["microsoft", "apple", "nature"] as const).map((cat) => (
+                  {(["microsoft", "apple"] as const).map((cat) => (
                     <div key={cat}>
                       <span className="text-[12px] text-muted-foreground block mb-2 capitalize">{cat}</span>
                       <div className="flex flex-wrap gap-2">

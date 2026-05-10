@@ -106,6 +106,7 @@ export function Dock() {
       {/* Invisible edge strip to trigger dock show when auto-hide */}
       {shouldHide && (
         <div
+          data-block-system-context
           className={`fixed ${alwaysOnTop ? "z-[9997]" : "z-[50]"}`}
           style={
             position === "bottom"
@@ -118,6 +119,7 @@ export function Dock() {
         />
       )}
       <div
+        data-block-system-context
         className={`os-chrome fixed ${alwaysOnTop ? "z-[9998]" : "z-[50]"} flex rounded-2xl transition-all duration-300 ${positionClasses} ${
           isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}

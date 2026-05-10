@@ -19,6 +19,7 @@ export function LockScreenOverlay() {
 
   return (
     <div
+      data-block-system-context
       className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-background/80 backdrop-blur-xl"
       onClick={() => unlockScreen()}
       role="button"

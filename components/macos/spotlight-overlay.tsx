@@ -76,6 +76,7 @@ export function SpotlightOverlay() {
 
   return (
     <div
+      data-block-system-context
       className="fixed inset-0 z-[9998] flex items-start justify-center pt-[15vh] px-4 bg-black/35 backdrop-blur-sm"
       onClick={() => setShowSpotlight(false)}
     >
