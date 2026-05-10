@@ -68,32 +68,22 @@ export function SolanaMIcon() {
   return <IconImage src="/icons/apps/solanum.svg" alt="SolanaM" />
 }
 export function KubernetesIcon() {
-  return <IconImage src="/icons/apps/docker.svg" alt="Kubernetes and Docker" />
+  return <IconImage src="/icons/kubernetes.webp" alt="Kubernetes and Docker" />
 }
 
-/* ==================== New Icons (from your directory) ==================== */
+/* ==================== Additional app icons ==================== */
 export function DockerIcon() {
-  return <IconImage src="/icons/apps/solanum.svg" alt="Docker" />
+  return <IconImage src="/icons/apps/docker.svg" alt="Docker" />
 }
 export function DatabaseClientIcon() {
-  return <IconImage src="/icons/apps/solanum.svg" alt="Database Client" />
+  return <IconImage src="/icons/database.webp" alt="Database Client" />
 }
 export function DsaIcon() {
-  return <IconImage src="/icons/apps/solanum.svg" alt="Design Patterns & Algorithms" />
+  return <IconImage src="/icons/pattern.webp" alt="Design Patterns & Algorithms" />
 }
 export function RustEducationIcon() {
-  return <IconImage src="/icons/apps/solanum.svg" alt="Rust Learning Hub" />
+  return <IconImage src="/icons/rust.png" alt="Rust Learning Hub" />
 }
 export function SshClientIcon() {
-  return <IconImage src="/icons/apps/solanum.svg" alt="SSH Client" />
-}
-export function TextViewerIcon() {
-  return <IconImage src="/icons/apps/solanum.svg" alt="Text Viewer" />
-}
-export function K8sIcon() {
-  return <IconImage src="/icons/apps/solanum.svg" alt="Kubernetes" />
-}
-export function ClockIconAlt() { // alternative if you need two clocks
-  return <IconImage src="/icons/clock.webp" alt="Clock" />
-}
-/* If any app above is missing an image, create a fallback */
+  return <IconImage src="/icons/station.webp" alt="SSH Client" />
+} 
